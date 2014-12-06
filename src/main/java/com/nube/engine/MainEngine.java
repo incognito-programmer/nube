@@ -1,0 +1,67 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.nube.engine;
+
+import com.nube.core.annotations.MicroService;
+import com.nube.core.api.Server;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.reflections.Reflections;
+
+/**
+ * Engine that initiates the whole cycle
+ *
+ * @author incognito
+ */
+public class MainEngine {
+
+    public static void main(String[] args) throws IllegalArgumentException {
+        Reflections reflections = new Reflections("com.nube");
+
+        Set<Class<?>> annotated
+                = reflections.getTypesAnnotatedWith(MicroService.class);
+
+        for (Class s : annotated) {
+            try {
+
+                Annotation annotation = s.getAnnotation(MicroService.class);
+                String path = "";
+                Integer port = 0;
+                try {
+                    try {
+                        path = (String) annotation.annotationType().getMethod("path").invoke(annotation);
+                        port = (int) annotation.annotationType().getMethod("port").invoke(annotation);
+
+                    } catch (InvocationTargetException ex) {
+                        Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } catch (NoSuchMethodException ex) {
+                    Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SecurityException ex) {
+                    Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                }
+//                annotation.annotationType().get
+                Object object = s.newInstance();
+                Server a = new Server(object.getClass().toString(), path, port);
+                try {
+                    a.start();
+                } catch (Exception ex) {
+                    Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                ;
+            } catch (InstantiationException ex) {
+                Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+    }
+
+}

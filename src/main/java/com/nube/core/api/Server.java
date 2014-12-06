@@ -10,26 +10,29 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
 /**
  *
  * @author incognito
  */
-public abstract class Server {
+public class Server {
 
     //microservices name
     public static String name = "";
 
-    public Server (String name){
-        
+    private String path = "";
+
+    private Integer port = 0;
+
+    public Server(String name, String path, Integer port) {
+        this.path = path;
+        this.port = port;
     }
-    
+
     public void start() throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(9000), 0);
-        server.createContext("/test", new MyHandler());
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        server.createContext(this.path, new MyHandler());
         server.setExecutor(null); // creates a default executor
         server.start();
     }

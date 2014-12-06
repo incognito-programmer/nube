@@ -17,9 +17,12 @@ import java.lang.annotation.Target;
  * @author incognito
  */
 @Documented
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MicroService {
-    
+
+    String path();
+    int port();
+
 }

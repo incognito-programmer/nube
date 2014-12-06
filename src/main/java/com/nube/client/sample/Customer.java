@@ -11,13 +11,7 @@ import com.nube.core.annotations.MicroService;
  *
  * @author incognito
  */
-@MicroService(path = "/test", port = 9000)
-public class Sample1 {
-
-    
-    
-//    
-//    public 
-//    
+@MicroService(path="/cust", port=8000)
+public class Customer {
     
 }
