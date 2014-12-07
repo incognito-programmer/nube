@@ -14,10 +14,9 @@ import com.nube.core.annotations.MicroService;
 @MicroService(path = "/test", port = 9000)
 public class Sample1 {
 
-    
-    
-//    
-//    public 
-//    
-    
+    public String getNubeData(String input, String input2) {
+        System.out.println("Input 1" + input);
+        System.out.println("INput 2" + input2);
+        return "hello world my first server";
+    }
 }

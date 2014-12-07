@@ -5,16 +5,20 @@
  */
 package com.nube.client.sample;
 
-import com.nube.core.annotations.MicroService;
-
 /**
  *
  * @author incognito
  */
-@MicroService(path = "/cust", port = 8000)
-public class Customer {
+public class MyResponse {
 
-    public String getNubeData(String input, String input2) {
-        return "hello world my first server";
+    private String name;
+
+    public String getName() {
+        return name;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 }

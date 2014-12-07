@@ -5,6 +5,7 @@
  */
 package com.nube.engine;
 
+import com.nube.client.sample.ServiceInterface;
 import com.nube.core.annotations.MicroService;
 import com.nube.core.api.Server;
 import java.lang.annotation.Annotation;
@@ -19,10 +20,20 @@ import org.reflections.Reflections;
  *
  * @author incognito
  */
-public class MainEngine {
+public class NubeServer {
 
-    public static void main(String[] args) throws IllegalArgumentException {
-        Reflections reflections = new Reflections("com.nube");
+    private static String packageDir = "";
+
+    public String getPackageDir() {
+        return packageDir;
+    }
+
+    public void setPackageDir(String packageDir) {
+        this.packageDir = packageDir;
+    }
+
+    public static void start() throws IllegalArgumentException {
+        Reflections reflections = new Reflections(packageDir);
 
         Set<Class<?>> annotated
                 = reflections.getTypesAnnotatedWith(MicroService.class);
@@ -39,26 +50,26 @@ public class MainEngine {
                         port = (int) annotation.annotationType().getMethod("port").invoke(annotation);
 
                     } catch (InvocationTargetException ex) {
-                        Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } catch (NoSuchMethodException ex) {
-                    Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (SecurityException ex) {
-                    Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
 //                annotation.annotationType().get
-                Object object = s.newInstance();
-                Server a = new Server(object.getClass().toString(), path, port);
+                Object object = (Object) s.newInstance();
+                Server a = new Server(object.getClass().toString(), path, port, object);
                 try {
                     a.start();
                 } catch (Exception ex) {
-                    Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 ;
             } catch (InstantiationException ex) {
-                Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IllegalAccessException ex) {
-                Logger.getLogger(MainEngine.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
