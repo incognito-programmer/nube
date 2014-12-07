@@ -3,14 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.nube.client.sample;
+package org.nube.client.sample;
 
 /**
  *
  * @author incognito
  */
-public interface ServiceInterface {
+public class MyResponse {
 
-    String getData(String input);
-    
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 }
