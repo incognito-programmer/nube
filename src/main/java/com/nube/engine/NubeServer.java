@@ -5,7 +5,6 @@
  */
 package com.nube.engine;
 
-import com.nube.client.sample.ServiceInterface;
 import com.nube.core.annotations.MicroService;
 import com.nube.core.api.Server;
 import java.lang.annotation.Annotation;
