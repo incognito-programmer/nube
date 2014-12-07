@@ -56,7 +56,6 @@ public class NubeServer {
                 } catch (SecurityException ex) {
                     Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
-//                annotation.annotationType().get
                 Object object = (Object) s.newInstance();
                 Server a = new Server(object.getClass().toString(), path, port, object);
                 try {
