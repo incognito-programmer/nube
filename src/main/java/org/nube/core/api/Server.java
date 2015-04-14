@@ -8,6 +8,7 @@ package org.nube.core.api;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import core.nube.util.logging.NubeLogger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -58,74 +59,79 @@ public class Server {
 
         @Override
         public void handle(HttpExchange t) throws IOException {
-
             String response = "hola ";
             String fullRequest = t.getRequestURI().toASCIIString();
             String fileAccess = "";
+            //access html resources. 
             if (fullRequest.contains(".")) {
-
                 fileAccess = fullRequest.substring(fullRequest.lastIndexOf(".") + 1, fullRequest.length());
             }
-
             if (null != fileAccess && fileAccess.length() > 0) {
-
-                try {
-                    String fileName = fullRequest.substring(fullRequest.lastIndexOf("/") + 1, fullRequest.length());
-                    File f = new File("C:\\Nube\\html\\" + fileName);
-
-                    byte[] arBytes = new byte[(int) f.length()];
-                    FileInputStream is = new FileInputStream(f);
-                    is.read(arBytes);
-
-                    t.sendResponseHeaders(200, arBytes.length);
-                    OutputStream os = t.getResponseBody();
-                    os.write(arBytes);
-                    os.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                //we have a file let's server it
+                processViews(fullRequest, t);
             } else {
-                System.out.println("Request method is " + t.getRequestMethod());
-                System.out.println("Get Request body" + t.getRequestURI());
-
-                String requestBody = t.getRequestURI().getQuery();
-                System.out.println(requestBody);
-
-                // String response = player.getData(name) + " time : " + System.currentTimeMillis();
-                for (Method s : player.getClass().getMethods()) {
-
-                    if (s.getName().startsWith("getNube")) {
-
-                        String requests[] = requestBody.split("&");
-                        List<String> params = new ArrayList();
-
-                        for (String requestInput : requests) {
-                            params.add(requestInput.substring(requestInput.lastIndexOf("=") + 1, requestInput.length()));
-                        }
-
-                        try {
-                            System.out.println("About to invoke" + s.getName());
-                            System.out.println("About to invoke with " + params.size());
-                            System.out.println("About to invoke with " + params);
-                            response = (String) s.invoke(player, params.toArray());
-                        } catch (IllegalAccessException ex) {
-                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (IllegalArgumentException ex) {
-                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (InvocationTargetException ex) {
-                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-
-                    }
-
-                };
-                t.sendResponseHeaders(200, response.length());
-                OutputStream os = t.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                processData(t, response);
             }
+        }
 
+        private void processData(HttpExchange t, String response) throws IOException, SecurityException {
+            System.out.println("Request method is " + t.getRequestMethod());
+            System.out.println("Get Request body" + t.getRequestURI());
+            
+            String requestBody = t.getRequestURI().getQuery();
+            System.out.println(requestBody);
+            
+            // String response = player.getData(name) + " time : " + System.currentTimeMillis();
+            for (Method s : player.getClass().getMethods()) {
+                
+                if (s.getName().startsWith("getNube")) {
+                    
+                    String requests[] = requestBody.split("&");
+                    List<String> params = new ArrayList();
+                    
+                    for (String requestInput : requests) {
+                        params.add(requestInput.substring(requestInput.lastIndexOf("=") + 1, requestInput.length()));
+                    }
+                    
+                    try {
+                        System.out.println("About to invoke" + s.getName());
+                        System.out.println("About to invoke with " + params.size());
+                        System.out.println("About to invoke with " + params);
+                        response = (String) s.invoke(player, params.toArray());
+                    } catch (IllegalAccessException ex) {
+                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IllegalArgumentException ex) {
+                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InvocationTargetException ex) {
+                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                }
+                
+            };
+            t.sendResponseHeaders(200, response.length());
+            OutputStream os = t.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+
+        private void processViews(String fullRequest, HttpExchange t) {
+            try {
+                String fileName = fullRequest.substring(fullRequest.lastIndexOf("/") + 1, fullRequest.length());
+                File f = new File("C:\\Nube\\html\\" + fileName);
+
+                byte[] arBytes = new byte[(int) f.length()];
+                FileInputStream is = new FileInputStream(f);
+                is.read(arBytes);
+
+                t.sendResponseHeaders(200, arBytes.length);
+                OutputStream os = t.getResponseBody();
+                os.write(arBytes);
+                os.close();
+            } catch (Exception e) {
+                NubeLogger.error("Problem with file " + e.toString());
+                e.printStackTrace();
+            }
+            //we have a file let's server it
         }
     }
 
