@@ -5,6 +5,7 @@
  */
 package org.nube.core.api;
 
+import com.nube.core.constants.RequestType;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -39,7 +40,7 @@ public class Server {
     public void start() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(8181), 0);
         for (ServiceObjectDef input : services) {
-            NubeLogger.debug("registring service: "+input.getClass().getName() + " on path: "+input.getPath());
+            NubeLogger.debug("registring service: " + input.getClass().getName() + " on path: " + input.getPath());
             server.createContext(input.getPath(), new MyHandler(input.getService()));
         }
         server.setExecutor(null);
@@ -77,42 +78,53 @@ public class Server {
             String requestBody = t.getRequestURI().getQuery();
             System.out.println(requestBody);
 
-           /**
-            
-            Figure out how to name url params
-            **/
-            
-            
-           // String response = player.getData(name) + " time : " + System.currentTimeMillis();
+            RequestType requestType = RequestType.valueOf(t.getRequestMethod().toUpperCase());
+            if (null == requestType)//it's search
+            {
+                requestType = RequestType.SEARCH;
+            }
+
+            /**
+             *
+             * Figure out how to name url params
+            *
+             */
+            // String response = player.getData(name) + " time : " + System.currentTimeMillis();
             for (Method s : player.getClass().getMethods()) {
 
-                if (s.getName().startsWith("getNube")) {
-
+                if ( requestType==RequestType.SEARCH && s.getName().startsWith("search")) {
                     String requests[] = requestBody.split("&");
                     List<String> params = new ArrayList();
-
                     for (String requestInput : requests) {
                         params.add(requestInput.substring(requestInput.lastIndexOf("=") + 1, requestInput.length()));
                     }
 
-                    try {
-                        System.out.println("About to invoke" + s.getName());
-                        System.out.println("About to invoke with " + params.size());
-                        System.out.println("About to invoke with " + params);
-                        response = (String) s.invoke(player, params.toArray());
-                    } catch (IllegalAccessException ex) {
-                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (InvocationTargetException ex) {
-                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    response = invokeMetehod(s, params, response);
+                }else if (requestType==RequestType.GET && s.getName().startsWith("get"))
+                       response = invokeMetehod(s, new ArrayList<String>(), response);
+                
+
+                t.sendResponseHeaders(200, response.length());
+                try (OutputStream os = t.getResponseBody()) {
+                    os.write(response.getBytes());
                 }
-            };
-            t.sendResponseHeaders(200, response.length());
-            OutputStream os = t.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            }
+        }
+
+        private String invokeMetehod(Method s, List<String> params, String response) {
+            try {
+                System.out.println("About to invoke" + s.getName());
+                System.out.println("About to invoke with " + params.size());
+                System.out.println("About to invoke with " + params);
+                response = (String) s.invoke(player, params.toArray());
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return response;
         }
 
         private void processViews(String fullRequest, HttpExchange t) {

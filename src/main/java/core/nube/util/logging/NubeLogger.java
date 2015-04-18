@@ -12,15 +12,19 @@ package core.nube.util.logging;
 public class NubeLogger {
 
     public static void error(String message) {
-        System.out.println("log: " + message);
+        System.out.println("error: " + message);
     }
 
     public static void debug(String message) {
-        System.out.println("log: " + message);
+        System.out.println("debug: " + message);
     }
-    
-    public static void warning (String message){
-        System.out.println("log: " + message);
-    
+
+    public static void warning(String message) {
+        System.out.println("warning: " + message);
+
+    }
+
+    public static void info(String message) {
+        System.out.println("info: " + message);
     }
 }
