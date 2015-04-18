@@ -27,16 +27,15 @@ import java.util.logging.Logger;
  */
 public class Server {
 
+    List<Object> services = new ArrayList<>();
     //microservices name
-    public static String name = "";
-
     private String path = "";
 
     private Integer port = 0;
 
     private final Object player;
 
-    public Server(String name, String path, Integer port, Object object) {
+    public Server(List<Object> services, String path, Integer port, Object object) {
         this.path = path;
         this.port = port;
         this.player = object;
@@ -44,11 +43,29 @@ public class Server {
 
     public void start() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext(this.path, new MyHandler(player));
-        server.setExecutor(null); // creates a default executor
+        server.createContext("/home/default", new MyHandler(player));
+        server.createContext("/home/second", new HttpHandler() {
+            public void handle(HttpExchange he) throws IOException {
+                he.sendResponseHeaders(200, "wepa".length());
+                OutputStream os = he.getResponseBody();
+                os.write("wepa".getBytes());
+                os.close();
+            }
+        }
+        );
+        server.createContext("/home/first", new HttpHandler() {
+            @Override
+            public void handle(HttpExchange he) throws IOException {
+                he.sendResponseHeaders(200, "success".length());
+                OutputStream os = he.getResponseBody();
+                os.write("success".getBytes());
+                os.close();
+            }
+        }
+        );
+        server.setExecutor(null);
         server.start();
     }
-
     static class MyHandler implements HttpHandler {
 
         private final Object player;
@@ -76,22 +93,22 @@ public class Server {
         private void processData(HttpExchange t, String response) throws IOException, SecurityException {
             System.out.println("Request method is " + t.getRequestMethod());
             System.out.println("Get Request body" + t.getRequestURI());
-            
+
             String requestBody = t.getRequestURI().getQuery();
             System.out.println(requestBody);
-            
+
             // String response = player.getData(name) + " time : " + System.currentTimeMillis();
             for (Method s : player.getClass().getMethods()) {
-                
+
                 if (s.getName().startsWith("getNube")) {
-                    
+
                     String requests[] = requestBody.split("&");
                     List<String> params = new ArrayList();
-                    
+
                     for (String requestInput : requests) {
                         params.add(requestInput.substring(requestInput.lastIndexOf("=") + 1, requestInput.length()));
                     }
-                    
+
                     try {
                         System.out.println("About to invoke" + s.getName());
                         System.out.println("About to invoke with " + params.size());
@@ -104,9 +121,7 @@ public class Server {
                     } catch (InvocationTargetException ex) {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    
                 }
-                
             };
             t.sendResponseHeaders(200, response.length());
             OutputStream os = t.getResponseBody();

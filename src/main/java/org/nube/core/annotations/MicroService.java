@@ -22,7 +22,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MicroService {
 
-    String path();
-    int port();
+    public String path();
+
+    public int port();
 
 }
