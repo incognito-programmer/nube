@@ -22,50 +22,30 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author incognito
  */
 public class Server {
 
-    List<Object> services = new ArrayList<>();
+    List<ServiceObjectDef> services = new ArrayList<>();
     //microservices name
     private String path = "";
 
     private Integer port = 0;
 
-    private final Object player;
-
-    public Server(List<Object> services, String path, Integer port, Object object) {
-        this.path = path;
-        this.port = port;
-        this.player = object;
+    public Server(List<ServiceObjectDef> services) {
+        this.services = services;
     }
 
     public void start() throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/home/default", new MyHandler(player));
-        server.createContext("/home/second", new HttpHandler() {
-            public void handle(HttpExchange he) throws IOException {
-                he.sendResponseHeaders(200, "wepa".length());
-                OutputStream os = he.getResponseBody();
-                os.write("wepa".getBytes());
-                os.close();
-            }
+        HttpServer server = HttpServer.create(new InetSocketAddress(8181), 0);
+        for (ServiceObjectDef input : services) {
+            NubeLogger.debug("registring service: "+input.getClass().getName() + " on path: "+input.getPath());
+            server.createContext(input.getPath(), new MyHandler(input.getService()));
         }
-        );
-        server.createContext("/home/first", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange he) throws IOException {
-                he.sendResponseHeaders(200, "success".length());
-                OutputStream os = he.getResponseBody();
-                os.write("success".getBytes());
-                os.close();
-            }
-        }
-        );
         server.setExecutor(null);
         server.start();
     }
+
     static class MyHandler implements HttpHandler {
 
         private final Object player;
@@ -97,7 +77,13 @@ public class Server {
             String requestBody = t.getRequestURI().getQuery();
             System.out.println(requestBody);
 
-            // String response = player.getData(name) + " time : " + System.currentTimeMillis();
+           /**
+            
+            Figure out how to name url params
+            **/
+            
+            
+           // String response = player.getData(name) + " time : " + System.currentTimeMillis();
             for (Method s : player.getClass().getMethods()) {
 
                 if (s.getName().startsWith("getNube")) {

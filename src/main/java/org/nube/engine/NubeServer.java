@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.nube.core.api.ServiceObjectDef;
 import org.reflections.Reflections;
 
 /**
@@ -24,7 +25,7 @@ import org.reflections.Reflections;
  */
 public class NubeServer {
 
-    private static String packageDir = "";
+    private  String packageDir = "";
 
     public String getPackageDir() {
         return packageDir;
@@ -34,18 +35,16 @@ public class NubeServer {
         this.packageDir = packageDir;
     }
 
-    public static void start() throws IllegalArgumentException {
+    public  void start() throws IllegalArgumentException {
         Reflections reflections = new Reflections(packageDir);
         Set<Class<?>> annotated
                 = reflections.getTypesAnnotatedWith(MicroService.class);
 
         if (annotated != null && annotated.size() > 1) {
 //we are working ona multi service environment
-
         }
 
-        List<Object> serviceObjects = new ArrayList<Object>();
-
+        List<ServiceObjectDef> serviceObjects = new ArrayList<>();
         for (Class s : annotated) {
             try {
                 Annotation annotation = s.getAnnotation(MicroService.class);
@@ -59,28 +58,25 @@ public class NubeServer {
                     } catch (InvocationTargetException ex) {
                         Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } catch (NoSuchMethodException ex) {
-                    Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (SecurityException ex) {
+                } catch (NoSuchMethodException | SecurityException ex) {
                     Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 Object object = (Object) s.newInstance();
-                Server a = new Server(null, path, port, object);
-                try {
-                    a.start();
-                } catch (Exception ex) {
-                    Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                serviceObjects.add(object);
-                break;
-            } catch (InstantiationException ex) {
-                Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
+                ServiceObjectDef serviceDef= new ServiceObjectDef();
+                serviceDef.setPath(path);
+                serviceDef.setService(object);
+                serviceObjects.add(serviceDef);
+                
+            } catch (InstantiationException | IllegalAccessException ex) {
                 Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
         //get ready to start server
+        Server a = new Server(serviceObjects);
+        try {
+            a.start();
+        } catch (Exception ex) {
+            Logger.getLogger(NubeServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
